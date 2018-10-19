@@ -1,0 +1,27 @@
+version: '3.1'
+
+services:
+
+  functional-local:
+    image: golang:1.7
+    volumes:
+      - .:/usr/src/myapp
+      - /tmp/go:/go
+    working_dir: /usr/src/myapp
+    environment:
+      - HOST_IP=${HOST_IP}
+      - SERVICE_PATH=${SERVICE_PATH}
+    command: bash -c "go get -d -v -t && go test ./... -v --run FunctionalTest"
+
+  functional:
+    image: ${DOCKER_HUB_USER:-murali2020kris}/sams-demo-2-test:${TAG:-latest}
+    environment:
+      - HOST_IP=${HOST_IP}
+      - SERVICE_PATH=${SERVICE_PATH}
+
+  production:
+    image: ${DOCKER_HUB_USER:-murali2020kris}/sams-demo-2-test:${TAG:-latest}
+    environment:
+      - HOST_IP=${HOST_IP}
+      - DURATION=${DURATION:-2}
+    command: bash -c "go get -d -v -t && go test ./... -v --run ProductionTest"

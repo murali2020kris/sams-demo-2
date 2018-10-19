@@ -1,0 +1,85 @@
+# Ingress was removed
+
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: sams-demo-2-beta-db # Changed the name
+spec:
+  selector:
+    matchLabels:
+      type: db
+      service: sams-demo-2-beta # Changed the label
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        type: db
+        service: sams-demo-2-beta # Changed the label
+        vendor: MongoLabs
+    spec:
+      containers:
+      - name: db
+        image: mongo:3.3
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: sams-demo-2-beta-db # Changed the name
+spec:
+  ports:
+  - port: 27017
+  selector:
+    type: db
+    service: sams-demo-2-beta
+
+---
+
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: sams-demo-2-beta # Changed
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      type: api
+      service: sams-demo-2-beta # Changed the label
+  template:
+    metadata:
+      labels:
+        type: api
+        service: sams-demo-2-beta # Changed the label
+        language: go
+    spec:
+      containers:
+      - name: main # Changed the name
+        image: murali2020kris/sams-demo-2:beta
+        env:
+        - name: DB
+          value: sams-demo-2-beta-db # Changed the env.
+        readinessProbe:
+          httpGet:
+            path: /demo/hello
+            port: 8080
+          periodSeconds: 1
+        livenessProbe:
+          httpGet:
+            path: /demo/hello
+            port: 8080
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: sams-demo-2-beta # Changed the name
+spec:
+  type: NodePort # Added
+  ports:
+  - port: 8080
+  selector:
+    type: api
+    service: sams-demo-2-beta # Changed the label
